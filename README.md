@@ -6,13 +6,46 @@
 
 ---
 
+## 界面预览
+
+> 截图取自本机实跑环境（演示账号登录后的真实数据），非设计稿。全套共 36 张，含双主题与手机端，见 [`docs/`](docs/)。
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/login_shots/login_desktop_paper.png" width="100%" alt="登录页"></td>
+    <td width="50%"><img src="docs/theme2-min-dashboard.png" width="100%" alt="今日学习（极简主题）"></td>
+  </tr>
+  <tr>
+    <td><sub><b>登录页</b> · 暖纸主题，左侧为功能概览</sub></td>
+    <td><sub><b>今日学习</b> · 极简主题，任务进度与连续打卡一目了然</sub></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="docs/theme2-paper-reading.png" width="100%" alt="悦读列表"></td>
+    <td width="50%"><img src="docs/theme2-paper-reader.png" width="100%" alt="精读页"></td>
+  </tr>
+  <tr>
+    <td><sub><b>悦读</b> · 12 篇精选文章，按体裁 / 难度 / 阅读状态筛选</sub></td>
+    <td><sub><b>精读</b> · 六级词自动高亮，逐段译文对照，点词即查</sub></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="docs/api_shots/settings_paper.png" width="100%" alt="设置"></td>
+    <td width="50%"><img src="docs/theme2-paper-stats.png" width="100%" alt="学习统计"></td>
+  </tr>
+  <tr>
+    <td><sub><b>设置</b> · 词典 / 发音 / 翻译源可切换，带连通性自测</sub></td>
+    <td><sub><b>学习统计</b> · ECharts 时长趋势与词汇掌握度</sub></td>
+  </tr>
+</table>
+
+---
+
 ## 一、技术栈
 
 | 层 | 技术 | 说明 |
 |----|------|------|
 | 前端 | Vue 3 + Vite + Element Plus + Pinia + Vue Router + Axios + ECharts | 组合式 API（`<script setup>`） |
 | 后端 | JDK 17 + Spring Boot 3.2.5 + MyBatis-Plus 3.5.5 | `Controller → Service → Mapper` 三层 |
-| 数据库 | MySQL 8.0 | utf8mb4，16 张表 |
+| 数据库 | MySQL 8.0 | utf8mb4，17 张表 |
 | 鉴权 | JWT（jjwt 0.11.5）+ Spring Security Crypto（BCrypt） | 无状态，拦截器校验 |
 | 数据源 | ECDICT 开源英汉词典 | 76 万词条清洗后入库 5.7 万条 |
 
@@ -35,7 +68,7 @@
                 │  JDBC
         ┌───────▼────────┐
         │  MySQL 8       │  cet6_sprint
-        │  10 张表        │
+        │  17 张表        │
         └────────────────┘
 ```
 
@@ -52,7 +85,7 @@ cet6-studio/
 │       │   ├── Cet6SprintApplication.java
 │       │   ├── common/           Result / 全局异常 / JwtUtil / UserContext
 │       │   ├── config/           WebConfig(CORS+拦截器) / MyBatisPlusConfig / BeanConfig
-│       │   ├── entity/           12 个实体，对应 12 张表
+│       │   ├── entity/           17 个实体，对应 17 张表
 │       │   ├── mapper/           MyBatis-Plus BaseMapper + 自定义 SQL
 │       │   ├── dto/              入参对象（含校验注解）
 │       │   ├── vo/               出参对象
@@ -72,18 +105,19 @@ cet6-studio/
 │       ├── composables/theme.js  双主题切换（模块级单例）
 │       ├── layout/MainLayout.vue 侧边栏布局（≤768px 自动转抽屉）
 │       ├── components/ClickableText.vue   ★ 点击查词组件（阅读器复用）
-│       └── views/                13 个页面
+│       └── views/                14 个页面
 ├── sql/
 │   ├── schema.sql                建库建表（基础表）
 │   ├── reading.sql               阅读模块建表
 │   ├── third_batch.sql           听力 / 写作 / 翻译建表 + 种子数据
+│   ├── settings.sql              外部数据源配置表（`t_app_config`）
 │   └── load_word_data.sql        词库导入
-└── docs/                         设计与验证文档（截图、复盘、优化建议）
+└── docs/                         界面截图与设计说明
 ```
 
 ---
 
-## 四、数据库设计（16 张表）
+## 四、数据库设计（17 张表）
 
 | 表 | 作用 | 关键设计 |
 |----|------|----------|
@@ -97,6 +131,7 @@ cet6-studio/
 | `t_study_log` | 学习日志 | 唯一键 `(user, date, module)` → upsert 累加 |
 | `t_checkin` | 打卡 | 唯一键 `(user, date)`，`INSERT IGNORE` 幂等 |
 | `t_task_record` | 每日任务 | 唯一键 `(user, date, task_key)` → upsert 推进 |
+| `t_app_config` | **外部数据源配置** | 键值对存储；词典 / 发音 / 翻译源在应用内切换，30s 本地缓存 |
 | `t_article` | **阅读文章** | `content` / `translation` 段落严格一一对应，前端逐段对照 |
 | `t_reading_record` | **阅读记录** | 唯一键 `(user, article)`；进度取 `GREATEST`、时长累加 |
 | `t_translation` | **翻译题库** | 题目含 `key_points`（要点，`;` 分隔），供覆盖率评分 |
