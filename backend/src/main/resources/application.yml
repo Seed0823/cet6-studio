@@ -1,0 +1,53 @@
+# ============================================================
+# 公共配置（与环境无关的部分）
+# ------------------------------------------------------------
+# 环境差异（日志级别、SQL 打印、敏感配置）拆分到：
+#   application-dev.yml   开发环境（默认激活）
+#   application-prod.yml  生产环境
+# 激活方式（优先级从高到低）：
+#   1. 启动参数  --spring.profiles.active=prod
+#   2. 环境变量  CET6_PROFILE=prod
+#   3. 默认值     dev
+# ============================================================
+server:
+  port: 8080
+  servlet:
+    context-path: /
+
+spring:
+  application:
+    name: cet6-sprint-backend
+  profiles:
+    active: ${CET6_PROFILE:dev}
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    # 数据库连接信息支持环境变量覆盖，避免把生产口令硬编码进仓库
+    url: ${CET6_DB_URL:jdbc:mysql://127.0.0.1:3306/cet6_sprint?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true}
+    username: ${CET6_DB_USER:root}
+    password: ${CET6_DB_PASSWORD:root}
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+    default-property-inclusion: non_null
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+  global-config:
+    banner: false
+    db-config:
+      id-type: auto
+
+# 业务自定义配置
+cet6:
+  jwt:
+    # HS256 要求密钥至少 256 bit（32 字节）。生产环境务必通过环境变量注入，
+    # 不要沿用下面的默认值。
+    secret: ${CET6_JWT_SECRET:cet6-sprint-jwt-secret-key-please-change-in-production-2026}
+    expire-hours: 72
+  # 每日任务默认配置
+  daily-task:
+    word-target: 20
+    review-target: 35
+    quiz-target: 10
+    dict-target: 5

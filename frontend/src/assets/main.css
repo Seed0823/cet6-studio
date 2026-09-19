@@ -1,0 +1,250 @@
+/*
+ * CET6 Studio · 主题：书房暖纸（Bookroom Paper）
+ *
+ * 设计意图：这个平台的核心场景是「读英文文章」而不是「填表格」，
+ * 所以整站放弃高饱和的青绿，改用纸感底色 + 赭石强调色 + 衬线英文标题，
+ * 让打开页面这件事更接近「翻开一本书」。
+ *
+ * 落地方式：所有颜色都收敛成 :root 变量，各页面只引用变量不写死色值，
+ * 将来要再换肤只需改这一个文件。
+ */
+:root {
+  /* ===== 主色：赭石 ===== */
+  --c6-primary: #b07120;
+  --c6-primary-dark: #854f0b;
+  --c6-primary-light: #d19a4a;
+  --c6-primary-soft: #faeeda;
+
+  /* ===== 表面：三层纸 ===== */
+  --c6-bg: #f7f3ea; /* 内容区：浅纸 */
+  --c6-sidebar: #f1e9d8; /* 侧边栏：稍深的米 */
+  --c6-header: #fffdf8; /* 顶栏 */
+  --c6-card: #ffffff; /* 卡片：纯白，靠纸底反衬 */
+
+  /* ===== 文字 ===== */
+  --c6-text: #2e2820;
+  --c6-text-sub: #93866f;
+
+  /* ===== 描边与浅底 ===== */
+  --c6-border: #e7dcc8;
+  --c6-border-soft: #f0e8da; /* 虚线分隔、细描边 */
+  --c6-track: #f2ebdd; /* 进度槽、灰底块 */
+  --c6-fill: #fbf6ec; /* hover / 次级填充 */
+
+  /* ===== 语义色（暖化后仍保持可辨识） ===== */
+  --c6-warn: #b98a0e;
+  --c6-danger: #c0504d;
+  --c6-ok: #3b6d11;
+
+  /* ===== 字体 ===== */
+  --c6-serif: 'Georgia', 'Times New Roman', 'Source Han Serif SC', 'Noto Serif SC', 'Songti SC', serif;
+  --c6-sans: 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', Arial, sans-serif;
+  /*
+   * 数字必须单独一套字体，不能跟 --c6-serif 共用。
+   * Georgia 用的是「旧式数字」（old-style figures）：6 顶出上沿、0 缩在
+   * 中间、3/4/5 沉到基线以下 —— 一排统计数字看上去高低起伏，像没对齐。
+   * Palatino Linotype 是等高「落地数字」（lining figures），既保留衬线的
+   * 书卷气，又让数字落在同一条基线上。纯数字展示一律用它。
+   */
+  --c6-num: 'Palatino Linotype', 'Book Antiqua', Palatino, 'Times New Roman', serif;
+
+  /* ===== 覆盖 Element Plus，让组件库跟暖纸主题一致 ===== */
+  --el-color-primary: #b07120;
+  --el-color-primary-light-3: #c08d45;
+  --el-color-primary-light-5: #cda463;
+  --el-color-primary-light-7: #dfc391;
+  --el-color-primary-light-8: #e9d4ae;
+  --el-color-primary-light-9: #faeeda;
+  --el-color-primary-dark-2: #854f0b;
+
+  --el-border-radius-base: 6px;
+  --el-text-color-primary: #2e2820;
+  --el-text-color-regular: #5c5140;
+  --el-text-color-secondary: #93866f;
+  --el-text-color-placeholder: #b3a893;
+  --el-border-color: #e7dcc8;
+  --el-border-color-light: #eee5d3;
+  --el-border-color-lighter: #f2ebdd;
+  --el-fill-color-light: #fbf6ec;
+  --el-fill-color-lighter: #fdfaf3;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: var(--c6-sans);
+  background: var(--c6-bg);
+  color: var(--c6-text);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 英文标题 / 单词 / 正文用衬线体 —— 暖纸主题的主要记忆点 */
+.c6-serif {
+  font-family: var(--c6-serif);
+}
+
+/* 通用卡片：纯白 + 细描边，不用阴影堆层级 */
+.c6-card {
+  background: var(--c6-card);
+  border: 1px solid var(--c6-border);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(96, 74, 40, 0.05);
+}
+
+.c6-card--flat {
+  box-shadow: none;
+}
+
+.c6-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 16px;
+  color: var(--c6-text);
+}
+
+.c6-sub {
+  font-size: 12px;
+  color: var(--c6-text-sub);
+}
+
+/* 统计数字：等高衬线数字，理由见 --c6-num 的注释 */
+.c6-num {
+  font-size: 26px;
+  font-weight: 700;
+  font-family: var(--c6-num);
+  font-variant-numeric: lining-nums tabular-nums;
+  line-height: 1.2;
+}
+
+/* 滚动条 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: #dccfb4;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #cdbd9c;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* 选中文字也走暖色，避免和整体割裂 */
+::selection {
+  background: #f0dcb4;
+  color: #4a3821;
+}
+
+/* 页面淡入 */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.18s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+/*
+ * ============================================================
+ * 主题二：极简黑白学术（Minimal Mono）
+ * ============================================================
+ *
+ * 触发：<html data-theme="minimal">。由 composables/theme.js 切换。
+ *
+ * 设计意图：面向「长篇英文阅读」场景的冷静克制皮肤。
+ *   - 纯黑 + 米白主调，低对比灰阶，禁用一切高饱和彩色与渐变
+ *   - 左侧近黑窄边栏，右侧米白大阅读区，纸质感
+ *   - 英文正文柔深灰、标题深黑、次要文字浅灰，无衬线现代字体、行高宽松
+ *   - 重点生词只用细灰下划线标出，绝不用刺眼色块
+ *   - 大量留白、发丝级分割线、柔和圆角、极简卡片
+ *
+ * 落地方式：只覆写 :root 的变量值。组件里凡是引用 --c6-* / --el-*
+ * 的地方全部自动跟随，无需改结构。下面是「变量解决不了」的少数几处
+ * 全局覆写（滚动条、选区、卡片阴影）。
+ */
+[data-theme='minimal'] {
+  /* 主色：墨黑，只用于强调与激活态，不出现彩色 */
+  --c6-primary: #1a1a1a;
+  --c6-primary-dark: #000000;
+  --c6-primary-light: #4a4a4a;
+  --c6-primary-soft: #f0eeea;
+
+  /* 表面：米白纸 + 近黑侧栏 */
+  --c6-bg: #f6f4ef;
+  --c6-sidebar: #161616;
+  --c6-header: #fbfaf7;
+  --c6-card: #ffffff;
+
+  /* 文字：柔深灰正文，浅灰次要 */
+  --c6-text: #2b2b2b;
+  --c6-text-sub: #9a948a;
+
+  /* 描边与浅底：发丝级灰 */
+  --c6-border: #e5e2db;
+  --c6-border-soft: #eeece6;
+  --c6-track: #ececea;
+  --c6-fill: #f1efea;
+
+  /* 语义色：全部压成低对比灰阶，禁止高饱和 */
+  --c6-warn: #8c8c8c;
+  --c6-danger: #8a7d7d;
+  --c6-ok: #6f7a6f;
+
+  /* 字体：无衬线现代字体，标题与正文同族（克制） */
+  --c6-serif: 'Inter', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', system-ui, -apple-system, sans-serif;
+  --c6-sans: 'Inter', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', system-ui, -apple-system, sans-serif;
+  --c6-num: 'Inter', 'Segoe UI', system-ui, 'Helvetica Neue', Arial, sans-serif;
+
+  /* 覆盖 Element Plus：中性墨色，直角化更利落 */
+  --el-color-primary: #1a1a1a;
+  --el-color-primary-light-3: #4a4a4a;
+  --el-color-primary-light-5: #6f6f6f;
+  --el-color-primary-light-7: #b3b3b3;
+  --el-color-primary-light-8: #d2d2d2;
+  --el-color-primary-light-9: #efedea;
+  --el-color-primary-dark-2: #000000;
+
+  --el-border-radius-base: 4px;
+  --el-text-color-primary: #2b2b2b;
+  --el-text-color-regular: #4a4a4a;
+  --el-text-color-secondary: #9a948a;
+  --el-text-color-placeholder: #bcb6ac;
+  --el-border-color: #e5e2db;
+  --el-border-color-light: #eeece6;
+  --el-border-color-lighter: #f1efea;
+  --el-fill-color-light: #f6f4ef;
+  --el-fill-color-lighter: #faf9f6;
+}
+
+/* 极简下：滚动条去暖、压灰 */
+[data-theme='minimal'] ::-webkit-scrollbar-thumb {
+  background: #cfccc6;
+}
+[data-theme='minimal'] ::-webkit-scrollbar-thumb:hover {
+  background: #b9b6af;
+}
+
+/* 极简下：选中文字走中性灰，不破坏整体克制感 */
+[data-theme='minimal'] ::selection {
+  background: #e8e5df;
+  color: #161616;
+}
+
+/* 极简下：卡片去掉阴影，只靠一道细描边，更干净 */
+[data-theme='minimal'] .c6-card {
+  box-shadow: none;
+}

@@ -1,0 +1,99 @@
+# ============================================================
+# CET6 Studio · 生产部署编排
+# ------------------------------------------------------------
+# 三个容器，职责单一：
+#   mysql    数据存储，不对宿主机开放端口（只在内部网络可达）
+#   backend  后端 jar，同样只在内部网络可达
+#   nginx    唯一对外入口，监听 80
+#
+# 前端接口地址在代码里是相对路径 /api，由 Nginx 转发给后端，
+# 因此部署时前端不需要任何改动。
+#
+# 启动：cd deploy && docker compose up -d --build
+# 停止：docker compose down
+# 日志：docker compose logs -f backend
+# ============================================================
+
+services:
+
+  # ----------------------------------------------------------
+  # 数据库
+  # ----------------------------------------------------------
+  mysql:
+    image: mysql:8.0
+    container_name: cet6-mysql
+    restart: unless-stopped
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_general_ci
+      - --default-time-zone=+08:00
+      # 以下三项针对 2G 内存的小服务器：MySQL 默认配置会预留过多内存，
+      # 与 JVM 抢资源容易触发 OOM。
+      - --innodb-buffer-pool-size=256M
+      - --performance-schema=OFF
+      - --max-connections=50
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:?缺少 DB_PASSWORD，请先在 deploy/.env 中设置}
+      MYSQL_DATABASE: cet6_sprint
+      TZ: Asia/Shanghai
+    volumes:
+      - mysql-data:/var/lib/mysql
+      # 数据卷为空时（首次启动）自动按文件名顺序导入，之后不再执行
+      - ./seed:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -uroot -p\"$$MYSQL_ROOT_PASSWORD\" --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      # 首次要导入 5.7 万条词库，给足启动时间
+      start_period: 120s
+    networks:
+      - cet6
+
+  # ----------------------------------------------------------
+  # 后端
+  # ----------------------------------------------------------
+  backend:
+    build:
+      context: ..
+      dockerfile: deploy/backend.Dockerfile
+    container_name: cet6-backend
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      CET6_PROFILE: prod
+      CET6_DB_URL: "jdbc:mysql://mysql:3306/cet6_sprint?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true"
+      CET6_DB_USER: root
+      CET6_DB_PASSWORD: ${DB_PASSWORD:?缺少 DB_PASSWORD，请先在 deploy/.env 中设置}
+      # 不配这一项，程序会退回代码里的公开默认密钥，任何人都能伪造登录令牌
+      CET6_JWT_SECRET: ${JWT_SECRET:?缺少 JWT_SECRET，请先在 deploy/.env 中设置}
+      TZ: Asia/Shanghai
+    networks:
+      - cet6
+
+  # ----------------------------------------------------------
+  # 前端 + 反向代理（对外唯一入口）
+  # ----------------------------------------------------------
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: cet6-nginx
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "${HTTP_PORT:-80}:80"
+    volumes:
+      # 前端构建产物直接挂载，更新页面只需替换 dist 后重启 nginx
+      - ../frontend/dist:/usr/share/nginx/html:ro
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - cet6
+
+volumes:
+  mysql-data:
+
+networks:
+  cet6:
+    driver: bridge
